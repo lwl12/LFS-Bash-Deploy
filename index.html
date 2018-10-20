@@ -93,6 +93,28 @@ git clone https://github.com/lwl12/LFS-Docker-Compose.git
 echo "TZ=Asia/Shanghai\nHostname=$1" > /opt/LFS-Docker-Compose/.env
 echo -e "${green}Info:${plain} LFS OK!"
 
+#logrotate
+echo -e "${green}Info:${plain} Setting up logrotate..."
+cat > /etc/logrotate.d/nginx <<EOL
+/data/wwwlogs/*/nginx.log {
+    daily
+    rotate 365
+    compress
+    delaycompress
+    dateyesterday
+    dateext
+    create
+    missingok
+    notifempty
+    sharedscripts
+    postrotate
+        docker inspect -f '{{ .State.Pid }}' nginx | xargs kill -USR1
+    endscript
+}
+EOL
+crontab -l | { cat; echo "0 0 * * * root run-parts /etc/cron.daily"; } | crontab -
+echo -e "${green}Info:${plain} logrotate OK!"
+
 #User
 echo -e "${green}Info:${plain} Setting up user..."
 useradd lwl12
