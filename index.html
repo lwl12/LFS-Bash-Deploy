@@ -3,10 +3,9 @@
 # Check if user is root
 [ $(id -u) != "0" ] && { echo "${CFAILURE}Error: You must be root to run this script${CEND}"; exit 1; }
 
-if [ $1 = '' ]
-  then
-    echo "You must specify a hostname."
-    exit
+if [ ! -n "$1" ] ;then
+  echo "You must specify a hostname."
+  exit
 fi
 
 #Hostname
