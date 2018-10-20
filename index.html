@@ -106,7 +106,7 @@ echo -e "${green}Info:${plain} User OK!"
 
 #SSH
 echo -e "${green}Info:${plain} Setting up SSH..."
-if [ -z "`grep ^Port /etc/ssh/sshd_config`"]; then
+if [ -z "`grep ^Port /etc/ssh/sshd_config`" ]; then
     sed -i "s@^#Port.*@&\nPort 36015@" /etc/ssh/sshd_config
 elif [ -n "`grep ^Port /etc/ssh/sshd_config`" ]; then
     sed -i "s@^Port.*@Port 36015@" /etc/ssh/sshd_config
