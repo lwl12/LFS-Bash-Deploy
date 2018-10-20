@@ -113,6 +113,7 @@ elif [ -n "`grep ^Port /etc/ssh/sshd_config`" ]; then
 fi
 
 sed -i "s@^#PasswordAuthentication.*@&\nPasswordAuthentication no@" /etc/ssh/sshd_config
+systemctl restart ssh
 echo -e "${green}Info:${plain} SSH OK!"
 
 #ZSH
