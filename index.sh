@@ -1,9 +1,7 @@
 #!/bin/bash
 
-if (( EUID != 0 )); then
-   echo "You must be root to do this." 1>&2
-   exit 100
-fi
+# Check if user is root
+[ $(id -u) != "0" ] && { echo "${CFAILURE}Error: You must be root to run this script${CEND}"; exit 1; }
 
 if [ $1 = '' ]
   then
