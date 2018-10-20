@@ -97,6 +97,7 @@ echo -e "${green}Info:${plain} LFS OK!"
 echo -e "${green}Info:${plain} Setting up user..."
 useradd lwl12
 chage -d 0 lwl12
+passwd -d lwl12
 mkdir /home/lwl12/.ssh/ -p
 echo "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAGFJYtyrc/bvohe5f0mTSSwlDoZj+i5/v9NhBz7ILGlEh2pe/DtmeSeiFFPewLBLFc40nG/P+OsI/K8y+5ePEUHJgBWWLfI80CVUwz9FmnChEFdi2lJlFVpgMP2R4muNhvL8HCFRKLMZW215YpyqIA5J+Wi4+Xr5ey/K5V4Cmj+sTEXPQ== lwl_ecdsa_521" > /home/lwl12/.ssh/authorized_keys
 chown lwl12:lwl12 /home/lwl12/.ssh -R
