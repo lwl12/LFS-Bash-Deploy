@@ -89,7 +89,7 @@ echo -e "${green}Info:${plain} Docker OK!"
 echo -e "${green}Info:${plain} Setting up LFS..."
 apt-get install git -y
 cd /opt
-git clone https://github.com/lwl12/LFS-Docker-Compose.git /opt
+git clone https://github.com/lwl12/LFS-Docker-Compose.git
 echo "TZ=Asia/Shanghai\nHostname=$1" > /opt/LFS-Docker-Compose/.env
 echo -e "${green}Info:${plain} LFS OK!"
 
@@ -108,10 +108,10 @@ echo -e "${green}Info:${plain} User OK!"
 echo -e "${green}Info:${plain} Setting up SSH..."
 if [ -z "`grep ^Port /etc/ssh/sshd_config`"]; then
     sed -i "s@^#Port.*@&\nPort 36015@" /etc/ssh/sshd_config
-  elif [ -n "`grep ^Port /etc/ssh/sshd_config`" ]; then
+elif [ -n "`grep ^Port /etc/ssh/sshd_config`" ]; then
     sed -i "s@^Port.*@Port 36015@" /etc/ssh/sshd_config
-  fi
 fi
+
 sed -i "s@^#PasswordAuthentication.*@&\nPasswordAuthentication no@" /etc/ssh/sshd_config
 echo -e "${green}Info:${plain} SSH OK!"
 
