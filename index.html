@@ -1,22 +1,22 @@
 #!/bin/bash
 
-# Check if user is root
-[ $(id -u) != "0" ] && { echo "${CFAILURE}Error: You must be root to run this script${CEND}"; exit 1; }
-
-if [ ! -n "$1" ] ;then
-  echo "You must specify a hostname."
-  exit
-fi
-
 red='\033[0;31m'
 green='\033[0;32m'
 yellow='\033[0;33m'
 plain='\033[0m'
 
+# Check if user is root
+[ $(id -u) != "0" ] && { echo -e "${red}Error:${plain} Error: You must be root to run this script"; exit 1; }
+
+if [ ! -n "$1" ] ;then
+  echo -e "${red}Error:${plain} You must specify a hostname."
+  exit
+fi
+
 #Hostname
 echo -e "${green}Info:${plain} Setting up hostname $1..."
 hostname "ecs-$1.cn2.network"
-echo "ecs-$1.cn2.network" > /etc/hostname
+echo -e "ecs-$1.cn2.network" > /etc/hostname
 sed -i "s/$HOSTNAME/ecs-$1.cn2.network/g" /etc/hosts
 echo -e "${green}Info:${plain} Hostname OK!"
 
@@ -51,12 +51,14 @@ echo -e "${green}Info:${plain} SWAP OK!"
 
 #LOGIN MOTD
 echo -e "${green}Info:${plain} Setting up MOTD..."
-cat > /etc/update-motd.d/00-header <<EOL
-printf  "Welcome to LWL $1 Server!"
+motdpath = '$motdpath'
+cat > $motdpath/00-header <<EOL
+#!/bin/sh
+printf  "Welcome to $1 Server!\n"
 curl "https://api.lwl12.com/hitokoto/main/get" -m 2
 printf "\n---------------------"
 EOL
-rm /etc/update-motd.d/10-help-text /etc/update-motd.d/50-motd-news /etc/update-motd.d/80-esm /etc/update-motd.d/95-hwe-eol
+rm $motdpath/10-help-text $motdpath/50-motd-news $motdpath/80-esm $motdpath/95-hwe-eol $motdpath/80-livepatch
 echo -e "${green}Info:${plain} MOTD OK!"
 
 #Docker
@@ -90,7 +92,7 @@ echo -e "${green}Info:${plain} Setting up LFS..."
 apt-get install git -y
 cd /opt
 git clone https://github.com/lwl12/LFS-Docker-Compose.git
-echo "TZ=Asia/Shanghai\nHostname=$1" > /opt/LFS-Docker-Compose/.env
+echo -e "TZ=Asia/Shanghai\nHostname=$1" > /opt/LFS-Docker-Compose/.env
 echo -e "${green}Info:${plain} LFS OK!"
 
 #logrotate
