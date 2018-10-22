@@ -97,7 +97,7 @@ echo -e "${green}Info:${plain} LFS OK!"
 
 #logrotate
 echo -e "${green}Info:${plain} Setting up logrotate..."
-cat > /etc/logrotate.d/nginx <<EOL
+cat > /etc/logrotate_nginx.conf <<EOL
 /data/wwwlogs/*/nginx.log {
     daily
     rotate 365
@@ -114,7 +114,7 @@ cat > /etc/logrotate.d/nginx <<EOL
     endscript
 }
 EOL
-crontab -l | { cat; echo "0 0 * * * root run-parts /etc/cron.daily"; } | crontab -
+crontab -l | { cat; echo "0 0 * * * /usr/sbin/logrotate --force /etc/logrotate_nginx.conf"; } | crontab -
 echo -e "${green}Info:${plain} logrotate OK!"
 
 #User
