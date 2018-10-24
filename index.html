@@ -79,7 +79,7 @@ sudo add-apt-repository \
 sudo apt-get update
 sudo apt-get install docker-ce -y
 sudo docker version
-echo '{ "registry-mirrors": ["https://registry.docker-cn.com"] }' > /etc/docker/daemon.json
+#echo '{ "registry-mirrors": ["https://registry.docker-cn.com"] }' > /etc/docker/daemon.json
 sudo docker run hello-world
 echo -e "${yellow}WARNING:${plain} Don't forget to set newest docker compose version!"
 sudo curl -L "https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
