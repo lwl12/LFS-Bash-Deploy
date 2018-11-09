@@ -51,7 +51,7 @@ echo -e "${green}Info:${plain} SWAP OK!"
 
 #LOGIN MOTD
 echo -e "${green}Info:${plain} Setting up MOTD..."
-motdpath = '/etc/update-motd.d'
+motdpath='/etc/update-motd.d'
 cat > $motdpath/00-header <<EOL
 #!/bin/sh
 printf  "Welcome to $1 Server!\n"
