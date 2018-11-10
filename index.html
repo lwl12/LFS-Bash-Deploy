@@ -6,25 +6,44 @@ yellow='\033[0;33m'
 plain='\033[0m'
 
 # Check if user is root
-[ $(id -u) != "0" ] && { echo -e "${red}Error:${plain} Error: You must be root to run this script"; exit 1; }
+[ $(id -u) != "0" ] && { echo -e "${red}[ERROR]${plain} Error: You must be root to run this script"; exit 1; }
 
-if [ ! -n "$1" ] ;then
-  echo -e "${red}Error:${plain} You must specify a hostname."
+withFly=false
+while getopts ":FH:" opt; do 
+  case $opt in 
+    F) 
+      withFly=true
+      echo -e "${yellow}[WARNING]${plain} With fly's credential"
+      ;; 
+    H) 
+      sid=$OPTARG
+      echo -e "${green}[INFO]${plain} Server ID: $sid"
+      ;; 
+    *) 
+      echo -e "${red}[ERROR]${plain} Unknown Options Detected."
+      exit 1 
+      ;; 
+  esac 
+done 
+ 
+
+if [ ! -n "$sid" ] ;then
+  echo -e "${red}[ERROR]${plain} You must specify a hostname."
   exit
 fi
 
 #Hostname
-echo -e "${green}Info:${plain} Setting up hostname $1..."
-hostname "ecs-$1.cn2.network"
-echo -e "ecs-$1.cn2.network" > /etc/hostname
-sed -i "s/$HOSTNAME/ecs-$1.cn2.network/g" /etc/hosts
-echo -e "${green}Info:${plain} Hostname OK!"
+echo -e "${green}[INFO]${plain} Setting up hostname ecs-$sid.cn2.network..."
+hostname "ecs-$sid.cn2.network"
+echo -e "ecs-$sid.cn2.network" > /etc/hostname
+sed -i "s/$HOSTNAME/ecs-$sid.cn2.network/g" /etc/hosts
+echo -e "${green}[INFO]${plain} Hostname OK!"
 
 #BBR
-echo -e "${green}Info:${plain} Setting up BBR..."
+echo -e "${green}[INFO]${plain} Setting up BBR..."
 param=$(sysctl net.ipv4.tcp_congestion_control | awk '{print $3}')
 if [[ x"${param}" == x"bbr" ]]; then
-    echo -e "${green}Info:${plain} TCP BBR has already been installed. nothing to do..."
+    echo -e "${green}[INFO]${plain} TCP BBR has already been installed. nothing to do..."
 else
     sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
     sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
@@ -33,13 +52,13 @@ else
     sysctl -p >/dev/null 2>&1
 fi
 
-echo -e "${green}Info:${plain} BBR OK!"
+echo -e "${green}[INFO]${plain} BBR OK!"
 
 #SWAP
-echo -e "${green}Info:${plain} Setting up SWAP..."
+echo -e "${green}[INFO]${plain} Setting up SWAP..."
 if [ -e /swap ]
 then
-  echo -e "${green}Info:${plain} SWAP has already been installed. nothing to do..."
+  echo -e "${green}[INFO]${plain} SWAP has already been installed. nothing to do..."
 else
   dd if=/dev/zero of=/swap bs=1M count=1024
   chmod 0600 /swap
@@ -47,22 +66,22 @@ else
   swapon /swap
   echo '/swap none swap defaults 0 0' >> /etc/fstab
 fi
-echo -e "${green}Info:${plain} SWAP OK!"
+echo -e "${green}[INFO]${plain} SWAP OK!"
 
 #LOGIN MOTD
-echo -e "${green}Info:${plain} Setting up MOTD..."
+echo -e "${green}[INFO]${plain} Setting up MOTD..."
 motdpath='/etc/update-motd.d'
 cat > $motdpath/00-header <<EOL
 #!/bin/sh
-printf  "Welcome to $1 Server!\n"
+printf  "Welcome to $sid Server!\n"
 curl "https://api.lwl12.com/hitokoto/main/get" -m 2
 printf "\n---------------------"
 EOL
 rm $motdpath/10-help-text $motdpath/50-motd-news $motdpath/80-esm $motdpath/95-hwe-eol $motdpath/80-livepatch
-echo -e "${green}Info:${plain} MOTD OK!"
+echo -e "${green}[INFO]${plain} MOTD OK!"
 
 #Docker
-echo -e "${green}Info:${plain} Setting up Docker..."
+echo -e "${green}[INFO]${plain} Setting up Docker..."
 sudo apt-get remove docker docker-engine docker.io
 sudo apt-get update
 sudo apt-get install -y \
@@ -81,22 +100,22 @@ sudo apt-get install docker-ce -y
 sudo docker version
 #echo '{ "registry-mirrors": ["https://registry.docker-cn.com"] }' > /etc/docker/daemon.json
 sudo docker run hello-world
-echo -e "${yellow}WARNING:${plain} Don't forget to set newest docker compose version!"
+echo -e "${yellow}[WARNING]${plain} Don't forget to set newest docker compose version!"
 sudo curl -L "https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 docker-compose --version
-echo -e "${green}Info:${plain} Docker OK!"
+echo -e "${green}[INFO]${plain} Docker OK!"
 
 #LFS
-echo -e "${green}Info:${plain} Setting up LFS..."
+echo -e "${green}[INFO]${plain} Setting up LFS..."
 apt-get install git -y
 cd /opt
 git clone https://github.com/lwl12/LFS-Docker-Compose.git
-echo -e "TZ=Asia/Shanghai\nHostname=$1" > /opt/LFS-Docker-Compose/.env
-echo -e "${green}Info:${plain} LFS OK!"
+echo -e "TZ=Asia/Shanghai\nHostname=$sid" > /opt/LFS-Docker-Compose/.env
+echo -e "${green}[INFO]${plain} LFS OK!"
 
 #logrotate
-echo -e "${green}Info:${plain} Setting up logrotate..."
+echo -e "${green}[INFO]${plain} Setting up logrotate..."
 cat > /etc/logrotate_nginx.conf <<EOL
 /data/wwwlogs/*/nginx.log {
     daily
@@ -115,10 +134,10 @@ cat > /etc/logrotate_nginx.conf <<EOL
 }
 EOL
 crontab -l | { cat; echo "0 0 * * * /usr/sbin/logrotate --force /etc/logrotate_nginx.conf"; } | crontab -
-echo -e "${green}Info:${plain} logrotate OK!"
+echo -e "${green}[INFO]${plain} logrotate OK!"
 
-#User
-echo -e "${green}Info:${plain} Setting up user..."
+#User LWL
+echo -e "${green}[INFO]${plain} Setting up user lwl12..."
 useradd lwl12
 chage -d 0 lwl12
 passwd -d lwl12
@@ -127,10 +146,24 @@ echo "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBA
 chown lwl12:lwl12 /home/lwl12 -R
 chmod 644 /home/lwl12/.ssh/authorized_keys
 echo "lwl12  ALL=(ALL:ALL) ALL" >> /etc/sudoers
-echo -e "${green}Info:${plain} User OK!"
+echo -e "${green}[INFO]${plain} User OK!"
+
+#User Fly
+if [ "$withFly" = true ]; then
+	echo -e "${green}[INFO]${plain} Setting up user fly3949..."
+	useradd fly3949
+	chage -d 0 fly3949
+	passwd -d fly3949
+	mkdir /home/fly3949/.ssh/ -p
+	echo "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBABL9LKMZHJFpnB8JPBJqUCjBbPhDD/HsholLH4Jh4Jf14Wk9uw2GlNLPMx9bRuJ4poADgDOWwF5OVMQIULQhDJ1iwCJWQiljkCEDicxiKInohf1efQq2fY8/hbDA7m7bvISyj+MpijD35YHOzGNz0Y/dd8Nziq1Z8rO3dfThCtH6GlptQ== fly_ecdsa_521" > /home/fly3949/.ssh/authorized_keys
+	chown fly3949:fly3949 /home/fly3949 -R
+	chmod 644 /home/fly3949/.ssh/authorized_keys
+	echo "fly3949  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+	echo -e "${green}[INFO]${plain} User fly3949 OK!"
+fi
 
 #SSH
-echo -e "${green}Info:${plain} Setting up SSH..."
+echo -e "${green}[INFO]${plain} Setting up SSH..."
 if [ -z "`grep ^Port /etc/ssh/sshd_config`" ]; then
     sed -i "s@^#Port.*@&\nPort 36015@" /etc/ssh/sshd_config
 elif [ -n "`grep ^Port /etc/ssh/sshd_config`" ]; then
@@ -139,14 +172,14 @@ fi
 
 sed -i "s@^#PasswordAuthentication.*@&\nPasswordAuthentication no@" /etc/ssh/sshd_config
 systemctl restart ssh
-echo -e "${green}Info:${plain} SSH OK!"
+echo -e "${green}[INFO]${plain} SSH OK!"
 
 #ZSH
-echo -e "${green}Info:${plain} Setting up ZSH..."
+echo -e "${green}[INFO]${plain} Setting up ZSH..."
 apt-get install zsh -y
 sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-echo -e "${green}Info:${plain} ZSH OK!"
+echo -e "${green}[INFO]${plain} ZSH OK!"
 
 
-echo -e "${green}Info:${plain} INIT OK!\nDON'T FORGET DEL DEFAULT USER!"
+echo -e "${green}[INFO]${plain} INIT OK!\nDON'T FORGET DEL DEFAULT USER!"
 exit 0;
