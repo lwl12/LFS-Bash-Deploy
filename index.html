@@ -70,6 +70,7 @@ echo -e "${green}[INFO]${plain} SWAP OK!"
 
 #LOGIN MOTD
 echo -e "${green}[INFO]${plain} Setting up MOTD..."
+sudo apt install landscape-common
 motdpath='/etc/update-motd.d'
 cat > $motdpath/00-header <<EOL
 #!/bin/sh
@@ -82,9 +83,9 @@ echo -e "${green}[INFO]${plain} MOTD OK!"
 
 #Docker
 echo -e "${green}[INFO]${plain} Setting up Docker..."
-sudo apt-get remove docker docker-engine docker.io
-sudo apt-get update
-sudo apt-get install -y \
+sudo ap remove docker docker-engine docker.io
+sudo apt update
+sudo apt install -y \
      apt-transport-https \
      ca-certificates \
      curl \
@@ -95,8 +96,8 @@ sudo add-apt-repository \
    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
    $(lsb_release -cs) \
    stable"
-sudo apt-get update
-sudo apt-get install docker-ce -y
+sudo apt update
+sudo apt install docker-ce -y
 sudo docker version
 #echo '{ "registry-mirrors": ["https://registry.docker-cn.com"] }' > /etc/docker/daemon.json
 sudo docker run hello-world
@@ -108,7 +109,7 @@ echo -e "${green}[INFO]${plain} Docker OK!"
 
 #LFS
 echo -e "${green}[INFO]${plain} Setting up LFS..."
-apt-get install git -y
+apt install git -y
 cd /opt
 git clone https://github.com/lwl12/LFS-Docker-Compose.git
 echo -e "TZ=Asia/Shanghai\nHostname=$sid" > /opt/LFS-Docker-Compose/.env
@@ -176,7 +177,7 @@ echo -e "${green}[INFO]${plain} SSH OK!"
 
 #ZSH
 echo -e "${green}[INFO]${plain} Setting up ZSH..."
-apt-get install zsh -y
+apt install zsh -y
 sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 echo -e "${green}[INFO]${plain} ZSH OK!"
 
