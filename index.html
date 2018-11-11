@@ -101,8 +101,12 @@ sudo apt install docker-ce -y
 sudo docker version
 #echo '{ "registry-mirrors": ["https://registry.docker-cn.com"] }' > /etc/docker/daemon.json
 sudo docker run hello-world
-echo -e "${yellow}[WARNING]${plain} Don't forget to set newest docker compose version!"
-sudo curl -L "https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+# get latest docker compose
+# THX https://gist.github.com/deviantony/2b5078fe1675a5fedabf1de3d1f2652a
+COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
+echo -e "${green}[INFO]${plain} Lastest Docker Compose version: $COMPOSE_VERSION"
+sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 docker-compose --version
 echo -e "${green}[INFO]${plain} Docker OK!"
