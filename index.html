@@ -48,9 +48,9 @@ fi
 
 #Hostname
 echoLog INFO "Setting up hostname ecs-$sid.cn2.network..."
+sed -i "s/$HOSTNAME/ecs-$sid.cn2.network/g" /etc/hosts
 hostname "ecs-$sid.cn2.network"
 echo -e "ecs-$sid.cn2.network" > /etc/hostname
-sed -i "s/$HOSTNAME/ecs-$sid.cn2.network/g" /etc/hosts
 echoLog INFO "Hostname OK!"
 
 #BBR
