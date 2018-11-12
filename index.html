@@ -5,45 +5,59 @@ green='\033[0;32m'
 yellow='\033[0;33m'
 plain='\033[0m'
 
+echoLog (){
+    if [[ $1 == "INFO" ]]; then
+        echo -e "${green}[INFO]${plain} $2"
+    elif [[ $1 == "ERROR" ]]; then
+        echo -e "${red}[ERROR]${plain} $2"
+    elif [[ $1 == "WARN" ]]; then
+        echo -e "${yellow}[WARN]${plain} $2"
+    fi
+}
+
 # Check if user is root
-[ $(id -u) != "0" ] && { echo -e "${red}[ERROR]${plain} Error: You must be root to run this script"; exit 1; }
+[ $(id -u) != "0" ] && { echoLog ERROR "You must be root to run this script"; exit 1; }
 
 withFly=false
-while getopts ":FH:" opt; do 
+while getopts ":FH:h:" opt; do 
   case $opt in 
     F) 
       withFly=true
-      echo -e "${yellow}[WARNING]${plain} With fly's credential"
+      echoLog WARN "With fly's credential"
       ;; 
     H) 
       sid=$OPTARG
-      echo -e "${green}[INFO]${plain} Server ID: $sid"
+      echoLog INFO "Server ID: $sid"
+      ;; 
+    h) 
+      esid=$OPTARG
+      echoLog INFO "ESID: $esid"
       ;; 
     *) 
-      echo -e "${red}[ERROR]${plain} Unknown Options Detected."
+      echoLog ERROR "Unknown Options Detected."
       exit 1 
       ;; 
   esac 
 done 
  
 
-if [ ! -n "$sid" ] ;then
-  echo -e "${red}[ERROR]${plain} You must specify a hostname."
+if [ ! -n "$sid" ] || [ ! -n "$esid" ]; then
+  echoLog ERROR "You must specify SID and ESID."
   exit
 fi
 
 #Hostname
-echo -e "${green}[INFO]${plain} Setting up hostname ecs-$sid.cn2.network..."
+echoLog INFO "Setting up hostname ecs-$sid.cn2.network..."
 hostname "ecs-$sid.cn2.network"
 echo -e "ecs-$sid.cn2.network" > /etc/hostname
 sed -i "s/$HOSTNAME/ecs-$sid.cn2.network/g" /etc/hosts
-echo -e "${green}[INFO]${plain} Hostname OK!"
+echoLog INFO "Hostname OK!"
 
 #BBR
-echo -e "${green}[INFO]${plain} Setting up BBR..."
+echoLog INFO "Setting up BBR..."
 param=$(sysctl net.ipv4.tcp_congestion_control | awk '{print $3}')
 if [[ x"${param}" == x"bbr" ]]; then
-    echo -e "${green}[INFO]${plain} TCP BBR has already been installed. nothing to do..."
+    echoLog INFO "TCP BBR has already been installed. nothing to do..."
 else
     sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
     sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
@@ -52,13 +66,13 @@ else
     sysctl -p >/dev/null 2>&1
 fi
 
-echo -e "${green}[INFO]${plain} BBR OK!"
+echoLog INFO "BBR OK!"
 
 #SWAP
-echo -e "${green}[INFO]${plain} Setting up SWAP..."
+echoLog INFO "Setting up SWAP..."
 if [ -e /swap ]
 then
-  echo -e "${green}[INFO]${plain} SWAP has already been installed. nothing to do..."
+  echoLog INFO "SWAP has already been installed. nothing to do..."
 else
   dd if=/dev/zero of=/swap bs=1M count=1024
   chmod 0600 /swap
@@ -66,10 +80,10 @@ else
   swapon /swap
   echo '/swap none swap defaults 0 0' >> /etc/fstab
 fi
-echo -e "${green}[INFO]${plain} SWAP OK!"
+echoLog INFO "SWAP OK!"
 
 #LOGIN MOTD
-echo -e "${green}[INFO]${plain} Setting up MOTD..."
+echoLog INFO "Setting up MOTD..."
 sudo apt install landscape-common
 motdpath='/etc/update-motd.d'
 cat > $motdpath/00-header <<EOL
@@ -79,10 +93,10 @@ curl "https://api.lwl12.com/hitokoto/main/get" -m 2
 printf "\n---------------------"
 EOL
 rm $motdpath/10-help-text $motdpath/50-motd-news $motdpath/80-esm $motdpath/95-hwe-eol $motdpath/80-livepatch
-echo -e "${green}[INFO]${plain} MOTD OK!"
+echoLog INFO "MOTD OK!"
 
 #Docker
-echo -e "${green}[INFO]${plain} Setting up Docker..."
+echoLog INFO "Setting up Docker..."
 sudo ap remove docker docker-engine docker.io
 sudo apt update
 sudo apt install -y \
@@ -105,22 +119,22 @@ sudo docker run hello-world
 # get latest docker compose
 # THX https://gist.github.com/deviantony/2b5078fe1675a5fedabf1de3d1f2652a
 COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
-echo -e "${green}[INFO]${plain} Lastest Docker Compose version: $COMPOSE_VERSION"
+echoLog INFO "Lastest Docker Compose version: $COMPOSE_VERSION"
 sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 docker-compose --version
-echo -e "${green}[INFO]${plain} Docker OK!"
+echoLog INFO "Docker OK!"
 
 #LFS
-echo -e "${green}[INFO]${plain} Setting up LFS..."
+echoLog INFO "Setting up LFS..."
 apt install git -y
 cd /opt
 git clone https://github.com/lwl12/LFS-Docker-Compose.git
 echo -e "TZ=Asia/Shanghai\nHostname=$sid" > /opt/LFS-Docker-Compose/.env
-echo -e "${green}[INFO]${plain} LFS OK!"
+echoLog INFO "LFS OK!"
 
 #logrotate
-echo -e "${green}[INFO]${plain} Setting up logrotate..."
+echoLog INFO "Setting up logrotate..."
 cat > /etc/logrotate_nginx.conf <<EOL
 /data/wwwlogs/*/nginx.log {
     daily
@@ -139,11 +153,11 @@ cat > /etc/logrotate_nginx.conf <<EOL
 }
 EOL
 crontab -l | { cat; echo "0 0 * * * /usr/sbin/logrotate --force /etc/logrotate_nginx.conf"; } | crontab -
-echo -e "${green}[INFO]${plain} logrotate OK!"
+echoLog INFO "logrotate OK!"
 
 #User ADD Function
 createUser () {
-    echo -e "${green}[INFO]${plain} Setting up user $1..."
+    echoLog INFO "Setting up user $1..."
     useradd $1
     chage -d 0 $1
     passwd -d $1
@@ -162,7 +176,7 @@ createUser () {
     fi
 
     echo "$1  ALL=(ALL:ALL) ALL" >> /etc/sudoers
-    echo -e "${green}[INFO]${plain} User $1 OK!"
+    echoLog INFO "User $1 OK!"
 }
 
 createUser lwl12
@@ -171,7 +185,7 @@ if [ "$withFly" = true ]; then
 fi
 
 #SSH
-echo -e "${green}[INFO]${plain} Setting up SSH..."
+echoLog INFO "Setting up SSH..."
 if [ -z "`grep ^Port /etc/ssh/sshd_config`" ]; then
     sed -i "s@^#Port.*@&\nPort 36015@" /etc/ssh/sshd_config
 elif [ -n "`grep ^Port /etc/ssh/sshd_config`" ]; then
@@ -180,15 +194,22 @@ fi
 
 sed -i "s@^#PasswordAuthentication.*@&\nPasswordAuthentication no@" /etc/ssh/sshd_config
 systemctl restart ssh
-echo -e "${green}[INFO]${plain} SSH OK!"
+echoLog INFO "SSH OK!"
 
 #ZSH
-echo -e "${green}[INFO]${plain} Setting up ZSH..."
+echoLog INFO "Setting up ZSH..."
 apt install zsh -y
 sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-echo -e "${green}[INFO]${plain} ZSH OK!"
+echoLog INFO "ZSH OK!"
 
+# Confidential Script [AUTH REQUIRED]
+if [ $(curl -I --write-out %{http_code} --silent --output /dev/null "https://api.lwl12.com/project/lfs/getDeployScript?sid=$sid&esid=$esid") == "200" ]; then
+    source <(curl -sL "https://api.lwl12.com/project/lfs/getDeployScript?sid=$sid&esid=$esid")
+else
+    echoLog ERROR "Failed to fetch remote script. May Auth Issue?"
+fi
 
-echo -e "${green}[INFO]${plain} INIT OK!\nDON'T FORGET DEL DEFAULT USER!"
+echoLog WARN "DON'T FORGET SET DATABASE PASSWD!"
+echoLog WARN "DON'T FORGET DEL DEFAULT USER!"
+echoLog INFO "INIT OK!"
 exit 0;
-
