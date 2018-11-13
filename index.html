@@ -192,12 +192,6 @@ sed -i "s@^#PasswordAuthentication.*@&\nPasswordAuthentication no@" /etc/ssh/ssh
 systemctl restart ssh
 echoLog INFO "SSH OK!"
 
-# ZSH
-echoLog INFO "Setting up ZSH..."
-apt install zsh -y
-echoLog WARN 'Install oh-my-zsh: sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"'
-echoLog INFO "ZSH OK!"
-
 # Utility
 echoLog INFO "Utility Installation Start!"
 ssh-keygen -t ecdsa -b 384 -N "" -C "i@lwl12.com" -f /root/.ssh/lwl_github_ecdsa
@@ -258,6 +252,12 @@ fi
 
 echoLog INFO "LFS OK!"
 
-echoLog WARN "DON'T FORGET DEL DEFAULT USER!"
-echoLog INFO "INIT OK!"
+# ZSH
+echoLog INFO "Setting up ZSH..."
+apt install zsh -y
+sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+echo -e "${green}[INFO]${plain} ZSH OK!"
+
+echo -e "${yellow}[WARN]${plain} DON'T FORGET DEL DEFAULT USER!"
+echo -e "${green}[INFO]${plain} INIT OK!"
 exit 0;
