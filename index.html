@@ -48,9 +48,13 @@ fi
 
 # Hostname
 echoLog INFO "Setting up hostname ecs-$sid.cn2.network..."
-sed -i "s/$HOSTNAME/ecs-$sid.cn2.network/g" /etc/hosts
-hostname "ecs-$sid.cn2.network"
-echo -e "ecs-$sid.cn2.network" > /etc/hostname
+if [ "$HOSTNAME" != "ecs-$sid.cn2.network" ]; then
+    sed -i "s/$HOSTNAME/ecs-$sid.cn2.network/g" /etc/hosts
+    hostname "ecs-$sid.cn2.network"
+    echo -e "ecs-$sid.cn2.network" > /etc/hostname
+else
+    echoLog WARN "Hostname already set."
+fi
 echoLog INFO "Hostname OK!"
 
 # BBR
@@ -84,7 +88,8 @@ echoLog INFO "SWAP OK!"
 
 # LOGIN MOTD
 echoLog INFO "Setting up MOTD..."
-sudo apt install landscape-common
+sudo apt update
+sudo apt install landscape-common -y
 motdpath='/etc/update-motd.d'
 cat > $motdpath/00-header <<EOL
 #!/bin/sh
@@ -97,8 +102,7 @@ echoLog INFO "MOTD OK!"
 
 # Docker
 echoLog INFO "Setting up Docker..."
-sudo ap remove docker docker-engine docker.io
-sudo apt update
+sudo apt remove docker docker-engine docker.io
 sudo apt install -y \
      apt-transport-https \
      ca-certificates \
