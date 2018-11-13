@@ -232,14 +232,20 @@ apt install git -y
 cd /opt
 git clone https://github.com/lwl12/LFS-Docker-Compose.git
 echo -e "TZ=Asia/Shanghai\nHostname=$sid" > /opt/LFS-Docker-Compose/.env
-while true; do
+passwdCheck=false
+while [ "$passwdCheck" = false ]; do
     echoLog WARN "Input MySQL ROOT Password: "
     read -s mysqlPW
     echo
     read -s -p "Password (again): " mysqlPWA
     echo
-    [ "$mysqlPW" = "$mysqlPWA" ] && break || echoLog ERROR "Password mismatch, try again."
+    if [ "$mysqlPW" = "$mysqlPWA" ]; then
+        passwdCheck=true
+    else
+        echoLog ERROR "Password mismatch, try again."
+    fi
 done
+
 echo "$mysqlPW" > /opt/LFS-Docker-Compose/mysql_root_password.txt
 
 if [ -f /opt/ssl/cn2.network.key ] && [ -f /opt/ssl/cn2.network.cer ] && [ -f /opt/ssl/cn2.network_ecc.key ] && [ -f /opt/ssl/cn2.network_ecc.cer ]; then
