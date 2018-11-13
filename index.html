@@ -195,7 +195,7 @@ echoLog INFO "SSH OK!"
 # ZSH
 echoLog INFO "Setting up ZSH..."
 apt install zsh -y
-sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+echoLog WARN 'Install oh-my-zsh: sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"'
 echoLog INFO "ZSH OK!"
 
 # Utility
