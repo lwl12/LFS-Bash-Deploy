@@ -233,13 +233,13 @@ cd /opt
 git clone https://github.com/lwl12/LFS-Docker-Compose.git
 echo -e "TZ=Asia/Shanghai\nHostname=$sid" > /opt/LFS-Docker-Compose/.env
 passwdCheck=false
-while [ "$passwdCheck" = false ]; do
+while [ "$passwdCheck" == false ]; do
     echoLog WARN "Input MySQL ROOT Password: "
     read -s mysqlPW
     echo
     read -s -p "Password (again): " mysqlPWA
     echo
-    if [ "$mysqlPW" = "$mysqlPWA" ]; then
+    if [ "$mysqlPW" == "$mysqlPWA" ]; then
         passwdCheck=true
     else
         echoLog ERROR "Password mismatch, try again."
