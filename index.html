@@ -195,6 +195,7 @@ echoLog INFO "SSH OK!"
 # Utility
 echoLog INFO "Utility Installation Start!"
 ssh-keygen -t ecdsa -b 384 -N "" -C "i@lwl12.com" -f /root/.ssh/lwl_github_ecdsa </dev/tty
+eval `ssh-agent -s`
 ssh-add /root/.ssh/lwl_github_ecdsa
 echoLog WARN "Please add the following key into Github repository's deploy key store. https://github.com/lwl12/LWS-Utility/settings/keys"
 echoLog WARN "$(<"/root/.ssh/lwl_github_ecdsa.pub")"
