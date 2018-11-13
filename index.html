@@ -158,15 +158,15 @@ createUser () {
     chage -d 0 $1
     passwd -d $1
 
-    if [[ $1 = "lwl12" ]] then
+    if [[ $1 = "lwl12" ]]; then
         mkdir /home/lwl12/.ssh/ -p
         echo "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAGFJYtyrc/bvohe5f0mTSSwlDoZj+i5/v9NhBz7ILGlEh2pe/DtmeSeiFFPewLBLFc40nG/P+OsI/K8y+5ePEUHJgBWWLfI80CVUwz9FmnChEFdi2lJlFVpgMP2R4muNhvL8HCFRKLMZW215YpyqIA5J+Wi4+Xr5ey/K5V4Cmj+sTEXPQ== lwl_ecdsa_521" > /home/lwl12/.ssh/authorized_keys
-    elif [[ $1 = "fly3949" ]]
+    elif [[ $1 = "fly3949" ]]; then
         mkdir /home/fly3949/.ssh/ -p
         echo "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBABL9LKMZHJFpnB8JPBJqUCjBbPhDD/HsholLH4Jh4Jf14Wk9uw2GlNLPMx9bRuJ4poADgDOWwF5OVMQIULQhDJ1iwCJWQiljkCEDicxiKInohf1efQq2fY8/hbDA7m7bvISyj+MpijD35YHOzGNz0Y/dd8Nziq1Z8rO3dfThCtH6GlptQ== fly_ecdsa_521" > /home/fly3949/.ssh/authorized_keys
     fi
 
-    if [[ $1 = "lwl12" ]] || [[ $1 = "fly3949" ]] then
+    if [[ $1 = "lwl12" ]] || [[ $1 = "fly3949" ]]; then
         chown $1:$1 /home/$1 -R
         chmod 644 /home/$1/.ssh/authorized_keys
     fi
