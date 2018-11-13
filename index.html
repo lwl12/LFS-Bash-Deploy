@@ -262,7 +262,7 @@ echoLog INFO "LFS OK!"
 # ZSH
 echoLog INFO "Setting up ZSH..."
 apt install zsh -y
-sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+echoLog WARN 'Run following command for oh my zsh install: sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"'
 echoLog INFO "ZSH OK!"
 
 echoLog WARN "DON'T FORGET DEL DEFAULT USER!"
