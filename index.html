@@ -61,7 +61,7 @@ echoLog INFO "Hostname OK!"
 echoLog INFO "Setting up BBR..."
 param=$(sysctl net.ipv4.tcp_congestion_control | awk '{print $3}')
 if [[ x"${param}" == x"bbr" ]]; then
-    echoLog INFO "TCP BBR has already been installed. nothing to do..."
+    echoLog WARN "TCP BBR has already been installed. nothing to do..."
 else
     sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
     sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
@@ -74,9 +74,9 @@ echoLog INFO "BBR OK!"
 
 # SWAP
 echoLog INFO "Setting up SWAP..."
-if [ -e /swap ]
+if [ -e /swap ] || [ -e /swapfile ]
 then
-  echoLog INFO "SWAP has already been installed. nothing to do..."
+  echoLog WARN "SWAP has already been installed. nothing to do..."
 else
   dd if=/dev/zero of=/swap bs=1M count=1024
   chmod 0600 /swap
