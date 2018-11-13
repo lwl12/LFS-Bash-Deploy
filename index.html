@@ -46,14 +46,14 @@ if [ ! -n "$sid" ] || [ ! -n "$esid" ]; then
   exit
 fi
 
-#Hostname
+# Hostname
 echoLog INFO "Setting up hostname ecs-$sid.cn2.network..."
 sed -i "s/$HOSTNAME/ecs-$sid.cn2.network/g" /etc/hosts
 hostname "ecs-$sid.cn2.network"
 echo -e "ecs-$sid.cn2.network" > /etc/hostname
 echoLog INFO "Hostname OK!"
 
-#BBR
+# BBR
 echoLog INFO "Setting up BBR..."
 param=$(sysctl net.ipv4.tcp_congestion_control | awk '{print $3}')
 if [[ x"${param}" == x"bbr" ]]; then
@@ -68,7 +68,7 @@ fi
 
 echoLog INFO "BBR OK!"
 
-#SWAP
+# SWAP
 echoLog INFO "Setting up SWAP..."
 if [ -e /swap ]
 then
@@ -82,7 +82,7 @@ else
 fi
 echoLog INFO "SWAP OK!"
 
-#LOGIN MOTD
+# LOGIN MOTD
 echoLog INFO "Setting up MOTD..."
 sudo apt install landscape-common
 motdpath='/etc/update-motd.d'
@@ -95,7 +95,7 @@ EOL
 rm $motdpath/10-help-text $motdpath/50-motd-news $motdpath/80-esm $motdpath/95-hwe-eol $motdpath/80-livepatch
 echoLog INFO "MOTD OK!"
 
-#Docker
+# Docker
 echoLog INFO "Setting up Docker..."
 sudo ap remove docker docker-engine docker.io
 sudo apt update
@@ -125,15 +125,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 docker-compose --version
 echoLog INFO "Docker OK!"
 
-#LFS
-echoLog INFO "Setting up LFS..."
-apt install git -y
-cd /opt
-git clone https://github.com/lwl12/LFS-Docker-Compose.git
-echo -e "TZ=Asia/Shanghai\nHostname=$sid" > /opt/LFS-Docker-Compose/.env
-echoLog INFO "LFS OK!"
-
-#logrotate
+# logrotate
 echoLog INFO "Setting up logrotate..."
 cat > /etc/logrotate_nginx.conf <<EOL
 /data/wwwlogs/*/nginx.log {
@@ -155,7 +147,7 @@ EOL
 crontab -l | { cat; echo "0 0 * * * /usr/sbin/logrotate --force /etc/logrotate_nginx.conf"; } | crontab -
 echoLog INFO "logrotate OK!"
 
-#User ADD Function
+# User ADD Function
 createUser () {
     echoLog INFO "Setting up user $1..."
     useradd $1
@@ -184,7 +176,7 @@ if [ "$withFly" = true ]; then
     createUser fly3949
 fi
 
-#SSH
+# SSH
 echoLog INFO "Setting up SSH..."
 if [ -z "`grep ^Port /etc/ssh/sshd_config`" ]; then
     sed -i "s@^#Port.*@&\nPort 36015@" /etc/ssh/sshd_config
@@ -196,20 +188,72 @@ sed -i "s@^#PasswordAuthentication.*@&\nPasswordAuthentication no@" /etc/ssh/ssh
 systemctl restart ssh
 echoLog INFO "SSH OK!"
 
-#ZSH
+# ZSH
 echoLog INFO "Setting up ZSH..."
 apt install zsh -y
 sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 echoLog INFO "ZSH OK!"
 
+# Utility
+echoLog INFO "Utility Installation Start!"
+ssh-keygen -t ecdsa -b 384 -N "" -C "i@lwl12.com" -f /root/.ssh/lwl_github_ecdsa
+ssh-add /root/.ssh/lwl_github_ecdsa
+echoLog WARN "Please add the following key into Github repository's deploy key store. https://github.com/lwl12/LWS-Utility/settings/keys"
+echoLog WARN "$(<"/root/.ssh/lwl_github_ecdsa.pub")"
+
+fingerprint="$(ssh-keygen -l -E md5 -f /root/.ssh/lwl_github_ecdsa)"
+fingerprint=($fingerprint)
+fingerprint=${fingerprint[1]}
+
+fpCheck=false
+while [ "$fpCheck" = false ]; do
+    echoLog WARN "Please input the fingerprint showing on the Github:"
+    read githubFP
+    if [[ MD5:$githubFP = $fingerprint ]] then
+        fpCheck=true
+    else
+        echoLog ERROR "Fingerprint mismatch!"
+    fi
+done
+
+mkdir -p /data/wwwroot
+
+git clone git@github.com:lwl12/LWS-Utility.git /data/wwwroot/utility
+
 # Confidential Script [AUTH REQUIRED]
+echoLog WARN "Connecting to LFS API..."
 if [ $(curl -I --write-out %{http_code} --silent --output /dev/null "https://api.lwl12.com/project/lfs/getDeployScript?sid=$sid&esid=$esid") == "200" ]; then
     source <(curl -sL "https://api.lwl12.com/project/lfs/getDeployScript?sid=$sid&esid=$esid")
 else
     echoLog ERROR "Failed to fetch remote script. May Auth Issue?"
 fi
 
-echoLog WARN "DON'T FORGET SET DATABASE PASSWD!"
+# LFS
+echoLog INFO "Setting up LFS..."
+apt install git -y
+cd /opt
+git clone https://github.com/lwl12/LFS-Docker-Compose.git
+echo -e "TZ=Asia/Shanghai\nHostname=$sid" > /opt/LFS-Docker-Compose/.env
+while true; do
+    echoLog WARN "Input MySQL ROOT Password: "
+    read -s mysqlPW
+    echo
+    read -s -p "Password (again): " mysqlPWA
+    echo
+    [ "$mysqlPW" = "$mysqlPWA" ] && break || echoLog ERROR "Password mismatch, try again."
+done
+echo $mysqlPW > /opt/LFS-Docker-Compose/mysql_root_password.txt
+
+if [ -f /opt/ssl/cn2.network.key -a -f /opt/ssl/cn2.network.cer -a -f /opt/ssl/cn2.network_ecc.key -a -f /opt/ssl/cn2.network_ecc.cer ]; then
+    echoLog WARN "Trying to boot LFS Docker Compose..."
+    cd /opt/LFS-Docker-Compose
+    docker-compose up -d
+else
+    echoLog WARN "SSL Certs not found! DON'T FORGET TO INSTALL THEM."
+fi
+
+echoLog INFO "LFS OK!"
+
 echoLog WARN "DON'T FORGET DEL DEFAULT USER!"
 echoLog INFO "INIT OK!"
 exit 0;
