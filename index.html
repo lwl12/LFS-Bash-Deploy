@@ -194,7 +194,7 @@ echoLog INFO "SSH OK!"
 
 # Utility
 echoLog INFO "Utility Installation Start!"
-ssh-keygen -t ecdsa -b 384 -N "" -C "i@lwl12.com" -f /root/.ssh/lwl_github_ecdsa
+ssh-keygen -t ecdsa -b 384 -N "" -C "i@lwl12.com" -f /root/.ssh/lwl_github_ecdsa </dev/tty
 ssh-add /root/.ssh/lwl_github_ecdsa
 echoLog WARN "Please add the following key into Github repository's deploy key store. https://github.com/lwl12/LWS-Utility/settings/keys"
 echoLog WARN "$(<"/root/.ssh/lwl_github_ecdsa.pub")"
@@ -206,7 +206,7 @@ fingerprint=${fingerprint[1]}
 fpCheck=false
 while [ "$fpCheck" = false ]; do
     echoLog WARN "Please input the fingerprint showing on the Github:"
-    read githubFP
+    read githubFP </dev/tty
     if [[ $fingerprint == MD5:$githubFP ]]; then
         fpCheck=true
     else
@@ -235,9 +235,9 @@ echo -e "TZ=Asia/Shanghai\nHostname=$sid" > /opt/LFS-Docker-Compose/.env
 passwdCheck=false
 while [ "$passwdCheck" == false ]; do
     echoLog WARN "Input MySQL ROOT Password: "
-    read -s mysqlPW
+    read -s mysqlPW  </dev/tty
     echo
-    read -s -p "Password (again): " mysqlPWA
+    read -s -p "Password (again): " mysqlPWA  </dev/tty
     echo
     if [ "$mysqlPW" == "$mysqlPWA" ]; then
         passwdCheck=true
@@ -262,8 +262,8 @@ echoLog INFO "LFS OK!"
 echoLog INFO "Setting up ZSH..."
 apt install zsh -y
 sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-echo -e "${green}[INFO]${plain} ZSH OK!"
+echoLog INFO "ZSH OK!"
 
-echo -e "${yellow}[WARN]${plain} DON'T FORGET DEL DEFAULT USER!"
-echo -e "${green}[INFO]${plain} INIT OK!"
+echoLog WARN "DON'T FORGET DEL DEFAULT USER!"
+echoLog INFO "INIT OK!"
 exit 0;
