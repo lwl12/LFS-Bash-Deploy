@@ -8,7 +8,7 @@ plain='\033[0m'
 echoLog (){
     if [[ $1 == "INFO" ]]; then
         echo -e "${green}[INFO]${plain} $2"
-    elif [[ $1 == "ERROR" ]]; then
+    elif [[ $1 == "ERROR" '; then
         echo -e "${red}[ERROR]${plain} $2"
     elif [[ $1 == "WARN" ]]; then
         echo -e "${yellow}[WARN]${plain} $2"
@@ -213,7 +213,7 @@ fpCheck=false
 while [ "$fpCheck" = false ]; do
     echoLog WARN "Please input the fingerprint showing on the Github:"
     read githubFP
-    if [[ MD5:$githubFP = $fingerprint ]] then
+    if [[ MD5:$githubFP = $fingerprint ]]; then
         fpCheck=true
     else
         echoLog ERROR "Fingerprint mismatch!"
