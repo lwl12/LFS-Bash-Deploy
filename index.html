@@ -94,7 +94,7 @@ motdpath='/etc/update-motd.d'
 cat > $motdpath/00-header <<EOL
 #!/bin/sh
 printf  "Welcome to $sid Server!\n"
-curl "https://api.lwl12.com/hitokoto/main/get" -m 2
+curl "https://api.lwl12.com/hitokoto/v1" -m 2
 printf "\n---------------------"
 EOL
 rm $motdpath/10-help-text $motdpath/50-motd-news $motdpath/80-esm $motdpath/95-hwe-eol $motdpath/80-livepatch
